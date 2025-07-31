@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Vuelos</title>
+    <link rel="stylesheet" href="estilos.css">
+    <link rel="icon" href="./_img/icono.png ">
+</head>
+<body>
+    <main class="contenedor-principal">
+        <header>
+            <h1 id="nombreAeropuerto">✈️ Gestor de Vuelos</h1>
+            <p id="infoAeropuerto">Vuelos diarios: 0</p>
+        </header>
+
+        <div class="columnas">
+            <div class="columna-izquierda">
+                <section class="seccion-formulario">
+                    <h2>Administrar Vuelos</h2>
+                    <form id="formVuelo" novalidate>
+                        <div class="grupo-form">
+                            <label for="codigo">Código Vuelo (Ej: IBE1234)</label>
+                            <input type="text" id="codigo" placeholder="3 letras y 4 números">
+                            <small class="error-message"></small>
+                        </div>
+                        <div class="grupo-form">
+                            <label for="compania">Compañía</label>
+                            <input type="text" id="compania" placeholder="Ej: Iberia">
+                            <small class="error-message"></small>
+                        </div>
+                        <div class="grupo-form">
+                            <label>Fecha y Hora de Salida</label>
+                            <div class="input-grupo-horizontal">
+                                <input type="date" id="fecha_salida" title="Fecha de salida">
+                                <input type="time" id="hora_salida" title="Hora de salida">
+                            </div>
+                            <small class="error-message"></small>
+                        </div>
+                        <div class="grupo-form">
+                            <label>Fecha y Hora de Llegada</label>
+                            <div class="input-grupo-horizontal">
+                                <input type="date" id="fecha_llegada" title="Fecha de llegada">
+                                <input type="time" id="hora_llegada" title="Hora de llegada">
+                            </div>
+                            <small class="error-message"></small>
+                        </div>
+                        <div class="grupo-form">
+                            <label>Duración Estimada</label>
+                            <div id="infoDuracion" class="info-display">Introduce fechas y horas para calcular</div>
+                        </div>
+                         <div class="grupo-form">
+                            <label for="precio">Precio Base (€)</label>
+                            <input type="number" id="precio" step="0.01" min="0" placeholder="150.50">
+                            <small class="error-message"></small>
+                        </div>
+                        <div class="boton-contenedor">
+                            <button type="submit" id="btnGuardar" class="boton boton-guardar">💾 Guardar</button>
+                            <button type="button" id="btnMostrar" class="boton boton-mostrar">🔍 Mostrar</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+            
+            <div class="columna-derecha">
+                <section class="seccion-listado">
+                    <h2>Vuelos Programados</h2>
+                    <div id="listaVuelos">
+                        <p>No hay vuelos para mostrar. Añada uno nuevo o pulse "Mostrar".</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <section id="panelCompra" class="seccion-formulario panel-oculto">
+            <h2 id="tituloCompra">Comprar Billete</h2>
+
+            <!-- =====> LÍNEA AÑADIDA AQUÍ <===== -->
+            <p id="infoVueloCompra" class="info-display"></p>
+
+            <form id="formCompra" novalidate>
+                <div class="grupo-form">
+                    <label for="dni">DNI</label>
+                    <input type="text" id="dni" placeholder="NNNNNNNNL" required>
+                    <small class="error-message"></small>
+                </div>
+                <div class="grupo-form">
+                    <label for="nombre">Nombre y Apellidos</label>
+                    <input type="text" id="nombre" placeholder="Introduzca su nombre completo" required>
+                    <small class="error-message"></small>
+                </div>
+                <div class="grupo-form">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" placeholder="usuario@dominio.com" required>
+                    <small class="error-message"></small>
+                </div>
+                 <div class="grupo-form">
+                    <label for="claseVuelo">Clase de Vuelo</label>
+                    <select id="claseVuelo">
+                        <option value="1" selected>Turista</option>
+                        <option value="1.5">Turista Premium (+50%)</option>
+                        <option value="2">Business (*2)</option>
+                        <option value="3">Primera Clase (*3)</option>
+                    </select>
+                </div>
+                <div id="precioFinal" class="info-display">Precio a pagar: 0.00€</div>
+                <div class="grupo-form">
+                    <label>Método de Pago</label>
+                    <div class="opciones-pago">
+                        <div class="opcion-pago-item">
+                            <input type="radio" id="pagoEfectivo" name="metodoPago" value="Efectivo" required> 
+                            <label for="pagoEfectivo">Efectivo</label>
+                        </div>
+                        <div class="opcion-pago-item">
+                            <input type="radio" id="pagoCredito" name="metodoPago" value="Tarjeta de Crédito"> 
+                            <label for="pagoCredito">Crédito</label>
+                        </div>
+                        <div class="opcion-pago-item">
+                            <input type="radio" id="pagoDebito" name="metodoPago" value="Tarjeta de Débito"> 
+                            <label for="pagoDebito">Débito</label>
+                        </div>
+                    </div>
+                    <small class="error-message"></small>
+                </div>
+                <div class="grupo-form">
+                    <label for="comentario">Comentario (opcional)</label>
+                    <textarea id="comentario" rows="3" maxlength="120"></textarea>
+                    <small id="contador">120 caracteres restantes</small>
+                </div>
+                <div class="boton-contenedor">
+                    <button type="submit" class="boton boton-guardar">✔ Confirmar Compra</button>
+                    <button type="button" id="btnCancelarCompra" class="boton boton-cancelar">❌ Cancelar</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script src="./gestionVuelos.js"></script>
+</body>
+</html>

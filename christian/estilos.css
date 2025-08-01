@@ -1,205 +1,287 @@
-/* --- Variables Globales de Colores y Estilos --- */
 :root {
-    --color-primario: #005A9C;
-    --color-secundario: #003F70;
-    --color-acento: #FFC72C;
-    --color-fondo: #f4f7fa;
-    --color-texto: #333;
-    --color-blanco: #fff;
-    --color-error: #D8000C;
-    --color-exito: #28a745;
-    --color-borde: #dde2e7;
-    --sombra-suave: 0 4px 12px rgba(0,0,0,0.08);
+  --color-primario: #00695c;
+  --color-secundario: #004d40;
+  --color-acento: #26a69a;
+  --color-fondo: #f4f6f6;
+  --color-texto: #212121;
+  --color-error: #D8000C;
+  --color-borde-error: #FFBABA;
+  --sombra: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* --- Estilos Generales y de Layout --- */
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
 body {
-    margin: 0;
-    padding: 2em;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: var(--color-fondo);
-    color: var(--color-texto);
-    line-height: 1.6;
-}
-
-.contenedor-principal {
-    max-width: 1300px;
-    margin: auto;
-    background: var(--color-blanco);
-    padding: 2em;
-    border-radius: 12px;
-    box-shadow: var(--sombra-suave);
+  margin: 0;
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  padding: 1rem;
 }
 
 header {
-    text-align: center;
-    border-bottom: 4px solid var(--color-acento);
-    padding-bottom: 1em;
-    margin-bottom: 2em;
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-h1, h2 {
-    color: var(--color-secundario);
-    margin-top: 0;
+h1 {
+  font-size: 2rem;
+  color: var(--color-primario);
+}
+
+h2 {
+  color: var(--color-secundario);
+}
+
+.contenedor-principal {
+  max-width: 1200px;
+  margin: auto;
 }
 
 .columnas {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 2em;
-    margin-bottom: 2em;
+  display: flex;
+  gap: 1rem;
 }
 
-.seccion-formulario, .seccion-listado {
-    padding: 1.5em;
-    border-radius: 8px;
-    border: 1px solid var(--color-borde);
+.columna-izquierda,
+.columna-derecha {
+  flex: 1;
 }
 
-/* --- Estilos para Formularios --- */
+.seccion-formulario,
+.seccion-listado {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: var(--sombra);
+}
+
 .grupo-form {
-    margin-bottom: 1.2em;
-}
-.grupo-form label {
-    display: block;
-    margin-bottom: 0.5em;
-    font-weight: 600;
-    font-size: 0.9em;
-    color: #555;
-}
-.grupo-form input, .grupo-form select, .grupo-form textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--color-borde);
-    border-radius: 5px;
-    box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-.grupo-form input:focus, .grupo-form select:focus, .grupo-form textarea:focus {
-    outline: none;
-    border-color: var(--color-primario);
-    box-shadow: 0 0 0 3px rgba(0, 90, 156, 0.15);
-}
-.input-grupo-horizontal {
-    display: flex;
-    gap: 10px;
+  margin-bottom: 1.2rem;
 }
 
-/* --- Estilos para Mensajes y Errores --- */
-.info-display {
-    padding: 12px;
-    background-color: #e9ecef;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: bold;
-    color: var(--color-secundario);
-    border-left: 4px solid #adb5bd;
-    transition: all 0.3s ease;
-}
-.info-display.success {
-    color: var(--color-exito);
-    background-color: #f0fff0;
-    border-left-color: var(--color-exito);
-}
-.info-display.error, .grupo-form input.input-error {
-    color: var(--color-error);
-    background-color: #fff8f8;
-    border-color: var(--color-error);
-}
-.error-message {
-    display: none;
-    color: var(--color-error);
-    font-size: 0.85em;
-    margin-top: 6px;
-    font-weight: 500;
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
 }
 
-/* --- Estilos para Botones --- */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  transition: border-color 0.3s ease;
+  font-size: 1rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-primario);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 105, 92, 0.2);
+}
+
 .boton-contenedor {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 10px;
-    margin-top: 2em;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 1rem;
 }
+
 .boton {
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    font-size: 0.9em;
-    color: white;
-    transition: background-color 0.2s, transform 0.1s;
-}
-.boton:active { transform: scale(0.97); }
-
-/* Colores de fondo de cada botón */
-.boton-guardar  { background-color: var(--color-primario); }
-.boton-mostrar  { background-color: var(--color-acento); color: var(--color-secundario); }
-.boton-cancelar { background-color: #dc3545; }
-.boton-buscar   { background-color: #6c757d; }
-.boton-comprar  { background-color: var(--color-exito); }
-
-/* Efecto hover para cada botón */
-.boton-guardar:hover  { background-color: var(--color-secundario); }
-.boton-mostrar:hover  { background-color: #f0b90c; }
-.boton-cancelar:hover { background-color: #c82333; }
-.boton-buscar:hover   { background-color: #5a6268; }
-.boton-comprar:hover  { background-color: #218838; }
-
-/* Ajustes para los botones pequeños ("Modificar", "Comprar") */
-.boton-buscar, .boton-comprar {
-    padding: 8px 12px;
-    text-transform: none;
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-/* --- Estilos de la Lista de Vuelos --- */
-#listaVuelos .vuelo-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-    transition: background-color 0.2s;
-}
-#listaVuelos .vuelo-item:hover { background-color: #fcfcfc; }
-#listaVuelos .vuelo-item:last-child { border-bottom: none; }
-#listaVuelos strong { color: var(--color-primario); }
-#listaVuelos small { color: #555; }
-.vuelo-item-controles {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+.boton-guardar {
+  background-color: var(--color-primario);
+  color: white;
 }
 
-/* --- Estilos del Panel de Compra --- */
-.panel-oculto { display: none; }
-#panelCompra {
-    border-top: 4px solid var(--color-primario);
-    animation: fadeIn 0.4s ease-out;
+.boton-guardar:hover {
+  background-color: var(--color-secundario);
+  transform: scale(1.02);
 }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+
+.boton-mostrar {
+  background-color: #fdd835;
+  color: #333;
+  text-shadow: 0 1px 1px white;
 }
+
+.boton-mostrar:hover {
+  background-color: #fbc02d;
+  transform: scale(1.02);
+}
+
+.boton-cancelar {
+  background-color: #e53935;
+  color: white;
+}
+
+.boton-cancelar:hover {
+  background-color: #c62828;
+  transform: scale(1.02);
+}
+
+small.error-message {
+  color: var(--color-error);
+  font-size: 0.85rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.input-error {
+  background-color: #ffe5e5;
+  border: 1px solid var(--color-error);
+}
+
+.info-display {
+  background-color: #e0f2f1;
+  color: #00695c;
+  padding: 0.6rem;
+  border-radius: 5px;
+  font-size: 0.95rem;
+}
+
+.input-grupo-horizontal {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .opciones-pago {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
-.opcion-pago-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-}
-.opcion-pago-item input[type="radio"] { width: auto; }
-.opcion-pago-item label { font-weight: normal; }
-#precioFinal { text-align: left; }
-#contador { text-align: right; font-size: 0.8em; color: #777; margin-top: 4px; }
 
-/* --- Diseño Adaptable (Responsive) --- */
+.opcion-pago-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+#listaVuelos {
+  margin-top: 1rem;
+}
+
+#listaVuelos p {
+  color: #555;
+  font-style: italic;
+}
+
+#listaVuelos small {
+  color: var(--color-texto);
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  display: inline-block;
+}
+
+.vuelo-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #fafafa;
+  box-shadow: var(--sombra);
+  transition: transform 0.2s ease;
+}
+
+.vuelo-item:hover {
+  transform: scale(1.01);
+  background-color: #f1f8e9;
+}
+
+.vuelo-item-controles {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.vuelo-item.activo {
+  background-color: #e3f2fd;
+  border-left: 4px solid var(--color-primario);
+}
+
+.panel-oculto {
+  display: none;
+  margin-top: 2rem;
+}
+
+#contador {
+  font-size: 0.8rem;
+  text-align: right;
+  display: block;
+  margin-top: 0.3rem;
+  color: #757575;
+}
+
+
+/* Estilos para el panel de notificaciones */
+.notificacion {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 25px;
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s, visibility 0.5s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.notificacion.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Tipo de notificación de error */
+.notificacion.error {
+  background-color: #e74c3c; /* Rojo */
+}
+
+/* Tipo de notificación de éxito */
+.notificacion.exito {
+  background-color: #2ecc71; /* Verde */
+}
+
+/* Estilo para el botón de cancelar edición */
+.boton-cancelar {
+    background-color: #7f8c8d; /* Gris */
+}
+.boton-cancelar:hover {
+    background-color: #95a5a6;
+}
+/* RESPONSIVE */
 @media (max-width: 992px) {
-    .columnas { grid-template-columns: 1fr; }
-    body { padding: 1em; }
+  .columnas {
+    flex-direction: column;
+  }
+
+  .input-grupo-horizontal {
+    flex-direction: column;
+  }
+
+  .vuelo-item-controles {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

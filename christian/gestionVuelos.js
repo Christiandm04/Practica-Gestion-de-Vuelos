@@ -2,12 +2,11 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ===================================================================
-    // PARTE 1: DEFINIR LOS MOLDES PARA NUESTROS DATOS (CLASES)
+    // CLASES (MOLDES PARA DATOS)
     // ===================================================================
-
     class Vuelo {
         constructor(codigo, compania, fechaSalida, horaSalida, fechaLlegada, horaLlegada, precioBase) {
-            this.codigo = codigo;
+            this.codigo = codigo.toUpperCase();
             this.compania = compania;
             this.fechaSalida = fechaSalida;
             this.horaSalida = horaSalida;
@@ -26,17 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
             
-            let diferenciaEnMilisegundos = llegada - salida;
-            const dias = Math.floor(diferenciaEnMilisegundos / 86400000);
-            diferenciaEnMilisegundos -= (dias * 86400000);
-            const horas = Math.floor(diferenciaEnMilisegundos / 3600000);
-            diferenciaEnMilisegundos -= (horas * 3600000);
-            const minutos = Math.floor(diferenciaEnMilisegundos / 60000);
+            let diff = llegada - salida;
+            const dias = Math.floor(diff / 86400000); diff -= dias * 86400000;
+            const horas = Math.floor(diff / 3600000); diff -= horas * 3600000;
+            const minutos = Math.floor(diff / 60000);
             
-            let textoDuracion = '';
-            if (dias > 0) textoDuracion += `${dias}d `;
-            textoDuracion += `${horas}h ${minutos}m`;
-            this.duracionVuelo = textoDuracion.trim();
+            this.duracionVuelo = `${dias > 0 ? dias+'d ' : ''}${horas}h ${minutos}m`.trim();
             return true;
         }
     }
@@ -61,12 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modificarVuelo(codigo, datosNuevos) {
             const vueloAModificar = this.buscarVueloPorCodigo(codigo);
             if (!vueloAModificar) return false;
-
-            Object.keys(datosNuevos).forEach(key => {
-                if (datosNuevos[key] || typeof datosNuevos[key] === 'number') {
-                    vueloAModificar[key] = (key === 'precioBase') ? parseFloat(datosNuevos[key]) : datosNuevos[key];
-                }
-            });
+            Object.assign(vueloAModificar, datosNuevos);
             return vueloAModificar.actualizarDuracion();
         }
 
@@ -76,29 +65,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================
-    // PARTE 2: ESTADO Y VARIABLES PRINCIPALES
+    // ESTADO Y VARIABLES PRINCIPALES
     // ===================================================================
 
     const miAeropuerto = new Aeropuerto('Aeropuerto Internacional', 'Ciudad Principal');
-    // <<< ESTA VARIABLE ES CLAVE PARA EL PROCESO DE COMPRA >>>
     let vueloParaComprar = null;
+    let vueloActivoEnFormulario = null;
 
     // ===================================================================
-    // PARTE 3: CONECTAR JAVASCRIPT CON EL HTML
+    // CONEXIÓN CON EL HTML
     // ===================================================================
-
     const formularioDeVuelos = document.getElementById('formVuelo');
     const { codigo, compania, fecha_salida, hora_salida, fecha_llegada, hora_llegada, precio } = formularioDeVuelos.elements;
+    const btnGuardar = document.getElementById('btnGuardar');
     
-    // <<< ESTOS ELEMENTOS SON PARA EL PANEL DE COMPRA >>>
     const formularioDeCompra = document.getElementById('formCompra');
     const panelDeCompra = document.getElementById('panelCompra');
-    
+    const { dni, nombre, email, claseVuelo, comentario } = formularioDeCompra.elements;
+
     const divListaVuelos = document.getElementById('listaVuelos');
     const divInfoDuracion = document.getElementById('infoDuracion');
-    
+    const contadorComentario = document.getElementById('contador');
+
     // ===================================================================
-    // PARTE 4: FUNCIONES REUTILIZABLES (HERRAMIENTAS)
+    // FUNCIONES DE UTILIDAD (VALIDACIÓN Y MANEJO DEL DOM)
     // ===================================================================
 
     const validarCodigoVuelo = (textoCodigo) => /^[A-Z]{3}\d{4}$/i.test(textoCodigo);
@@ -112,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
             campoInput.classList.add('input-error');
             if(contenedorDelError) {
                 contenedorDelError.textContent = mensajeDeError;
-                contenedorDelError.style.display = 'block';
             }
         }
     }
@@ -124,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
             campoInput.classList.remove('input-error');
             if(contenedorDelError) {
                 contenedorDelError.textContent = '';
-                contenedorDelError.style.display = 'none';
             }
         }
     }
@@ -141,142 +129,109 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             miAeropuerto.agregarVuelo(new Vuelo('IBE0001', 'Iberia', '2025-10-20', '10:00', '2025-10-20', '12:15', 180.50));
             miAeropuerto.agregarVuelo(new Vuelo('RYN8765', 'Ryanair', '2025-11-05', '09:30', '2025-11-05', '11:40', 89.99));
-            miAeropuerto.agregarVuelo(new Vuelo('VLG2345', 'Vueling', '2025-11-15', '18:00', '2025-11-15', '19:20', 110.00));
-            guardarVuelosEnMemoria();
         } 
     };
     
-    const actualizarInfoCabecera = () => { document.getElementById('nombreAeropuerto').textContent = `✈️ ${miAeropuerto.nombre} (${miAeropuerto.ciudad})`; };
+    const actualizarInfoCabecera = () => { document.getElementById('nombreAeropuerto').innerHTML = `✈️ Gestor de Vuelos`; };
     
-    const formatearFechaHora = (fecha, hora) => { 
-        if (!fecha || !hora) return 'Fecha/hora no disponible';
-        return new Date(`${fecha}T${hora}`).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    };
+    const formatearFechaHora = (fecha, hora) => new Date(`${fecha}T${hora}`).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     
-    const renderizarListaDeVuelos = (listaDeVuelos) => {
+    // ===================================================================
+    // RENDERIZADO Y ACTUALIZACIÓN DE LA PÁGINA
+    // ===================================================================
+    
+    const renderizarListaDeVuelos = (listaDeVuelos = miAeropuerto.vuelos) => {
         divListaVuelos.innerHTML = '';
-        const numeroVuelosMostrados = (listaDeVuelos && Array.isArray(listaDeVuelos)) ? listaDeVuelos.length : 0;
-        document.getElementById('infoAeropuerto').textContent = `Vuelos diarios: ${numeroVuelosMostrados}`;
+        document.getElementById('infoAeropuerto').textContent = `Vuelos diarios: ${listaDeVuelos.length}`;
         
-        if (numeroVuelosMostrados === 0) {
-            divListaVuelos.innerHTML = '<p>No se encontraron vuelos con los criterios de búsqueda.</p>';
+        if (listaDeVuelos.length === 0) {
+            divListaVuelos.innerHTML = '<p>🤷‍♂️ No se encontraron vuelos.</p>';
             return;
         }
 
         listaDeVuelos.forEach(vuelo => {
             const vueloHTML = `
-                <div class="vuelo-item">
+                <div class="vuelo-item ${vueloActivoEnFormulario === vuelo.codigo ? 'activo' : ''}" data-codigo="${vuelo.codigo}">
                     <div>
-                        <strong>${vuelo.codigo}</strong> (${vuelo.compania})<br>
-                        <small>Salida: ${formatearFechaHora(vuelo.fechaSalida, vuelo.horaSalida)} | Llegada: ${formatearFechaHora(vuelo.fechaLlegada, vuelo.horaLlegada)}</small><br>
-                        <small>Duración: ${vuelo.duracionVuelo} | Precio Base: ${vuelo.precioBase.toFixed(2)}€</small>
+                        <strong>✈️ ${vuelo.codigo}</strong> (${vuelo.compania})<br>
+                        <small>🛫 Salida: ${formatearFechaHora(vuelo.fechaSalida, vuelo.horaSalida)} | 🛬 Llegada: ${formatearFechaHora(vuelo.fechaLlegada, vuelo.horaLlegada)}</small><br>
+                        <small>⏱️ Duración: ${vuelo.duracionVuelo} | 💶 Precio Base: ${vuelo.precioBase.toFixed(2)}€</small>
                     </div>
                     <div class="vuelo-item-controles">
-                        <button class="boton boton-buscar boton-cargar-lista" data-codigo="${vuelo.codigo}">📝 Modificar</button>
-                        <button class="boton boton-comprar" data-codigo="${vuelo.codigo}">🛒 Comprar</button>
+                        <button class="boton boton-mostrar" data-accion="modificar">📝 Modificar</button>
+                        <button class="boton boton-guardar" data-accion="comprar">🛒 Comprar</button>
                     </div>
                 </div>`;
-            divListaVuelos.innerHTML += vueloHTML;
+            divListaVuelos.insertAdjacentHTML('beforeend', vueloHTML);
         });
     };
 
-    const actualizarTodaLaPagina = () => {
-        renderizarListaDeVuelos(miAeropuerto.vuelos);
-        actualizarInfoCabecera();
-    };
-
     const actualizarDuracionEnTiempoReal = () => {
-        const [fechaSalida, horaSalida, fechaLlegada, horaLlegada] = [fecha_salida.value, hora_salida.value, fecha_llegada.value, hora_llegada.value];
-    
-        if (!fechaSalida || !horaSalida || !fechaLlegada || !horaLlegada) {
-            divInfoDuracion.textContent = 'Duración Estimada: --';
-            divInfoDuracion.style.color = '';
+        const [fS, hS, fL, hL] = [fecha_salida.value, hora_salida.value, fecha_llegada.value, hora_llegada.value];
+        if (!fS || !hS || !fL || !hL) {
+            divInfoDuracion.textContent = 'Introduce fechas y horas para calcular';
             return;
         }
-        
-        const salida = new Date(`${fechaSalida}T${horaSalida}`);
-        const llegada = new Date(`${fechaLlegada}T${horaLlegada}`);
-    
-        if (isNaN(salida.getTime()) || isNaN(llegada.getTime()) || llegada <= salida) {
-            divInfoDuracion.textContent = 'Duración Estimada: Cálculo inválido';
-            divInfoDuracion.style.color = 'red';
-            return;
-        }
-    
-        divInfoDuracion.style.color = ''; 
-        let diferenciaEnMilisegundos = llegada - salida;
-        const dias = Math.floor(diferenciaEnMilisegundos / 86400000);
-        diferenciaEnMilisegundos -= (dias * 86400000);
-        const horas = Math.floor(diferenciaEnMilisegundos / 3600000);
-        diferenciaEnMilisegundos -= (horas * 3600000);
-        const minutos = Math.floor(diferenciaEnMilisegundos / 60000);
-        
-        let textoDuracion = '';
-        if (dias > 0) textoDuracion += `${dias}d `;
-        textoDuracion += `${horas}h ${minutos}m`;
-        divInfoDuracion.textContent = `Duración Estimada: ${textoDuracion.trim()}`;
+        const tempVuelo = new Vuelo('temp', 'temp', fS, hS, fL, hL, 0);
+        divInfoDuracion.textContent = `Duración Estimada: ${tempVuelo.duracionVuelo}`;
+        divInfoDuracion.style.color = tempVuelo.duracionVuelo === 'Inválida' ? 'red' : '';
     };
 
     // ===================================================================
-    // PARTE 5: LÓGICA PRINCIPAL (MANEJADORES DE EVENTOS)
+    // MANEJADORES DE EVENTOS PRINCIPALES
     // ===================================================================
 
     const manejarGuardado = (evento) => {
         evento.preventDefault();
         limpiarTodosLosErrores(formularioDeVuelos);
 
-        const codigoVuelo = codigo.value.trim().toUpperCase();
-        if (!validarCodigoVuelo(codigoVuelo)) {
-            if (codigo.value) mostrarError(codigo, 'Formato incorrecto (ej: IBE1234).');
+        if (!validarCodigoVuelo(codigo.value.trim())) {
+            mostrarError(codigo, 'Formato incorrecto (ej: IBE1234).');
             return;
         }
-
-        const vueloExistente = miAeropuerto.buscarVueloPorCodigo(codigoVuelo);
+        
         const datosFormulario = { compania: compania.value.trim(), fechaSalida: fecha_salida.value, horaSalida: hora_salida.value, fechaLlegada: fecha_llegada.value, horaLlegada: hora_llegada.value, precioBase: precio.value };
+        if (Object.values(datosFormulario).some(val => !val)) {
+            alert('⚠️ Para guardar, todos los campos son obligatorios.');
+            return;
+        }
+        
+        const codigoVuelo = codigo.value.trim().toUpperCase();
+        const vueloExistente = miAeropuerto.buscarVueloPorCodigo(codigoVuelo);
 
         if (vueloExistente) {
-            if (!miAeropuerto.modificarVuelo(codigoVuelo, datosFormulario)) {
-                 return alert('Error al modificar: La fecha de llegada debe ser posterior a la de salida.');
-            }
-            alert(`Vuelo ${codigoVuelo} modificado correctamente.`);
+            miAeropuerto.modificarVuelo(codigoVuelo, datosFormulario);
         } else {
-            if (!datosFormulario.compania || !datosFormulario.fechaSalida || !datosFormulario.horaSalida || !datosFormulario.fechaLlegada || !datosFormulario.horaLlegada || !datosFormulario.precioBase) {
-                return alert('Para crear un vuelo nuevo, todos los campos son obligatorios.');
-            }
-            const nuevoVuelo = new Vuelo(codigoVuelo, ...Object.values(datosFormulario));
-            if (nuevoVuelo.duracionVuelo === 'Inválida') {
-                return alert('Error al crear: La fecha de llegada debe ser posterior a la de salida.');
-            }
-            miAeropuerto.agregarVuelo(nuevoVuelo);
-            alert(`Vuelo ${codigoVuelo} guardado correctamente.`);
+            miAeropuerto.agregarVuelo(new Vuelo(codigoVuelo, ...Object.values(datosFormulario)));
         }
         
         formularioDeVuelos.reset();
+        btnGuardar.textContent = '💾 Guardar';
+        vueloActivoEnFormulario = null;
         actualizarDuracionEnTiempoReal();
         guardarVuelosEnMemoria();
+        renderizarListaDeVuelos();
     };
     
-    const manejarMostrarVuelos = () => {
+    const manejarMostrar = () => {
         const codigoFiltro = codigo.value.trim().toUpperCase();
         const companiaFiltro = compania.value.trim().toLowerCase();
-        
+
         if (!codigoFiltro && !companiaFiltro) {
             renderizarListaDeVuelos(miAeropuerto.vuelos);
             return;
         }
-        
-        let vuelosFiltrados = [...miAeropuerto.vuelos]; 
-        if (codigoFiltro) {
-            vuelosFiltrados = vuelosFiltrados.filter(vuelo => vuelo.codigo.toUpperCase().includes(codigoFiltro));
-        }
-        if (companiaFiltro) {
-            vuelosFiltrados = vuelosFiltrados.filter(vuelo => vuelo.compania.toLowerCase().includes(companiaFiltro));
-        }
-        
+
+        const vuelosFiltrados = miAeropuerto.vuelos.filter(vuelo => {
+            const matchCodigo = codigoFiltro ? vuelo.codigo.toUpperCase().includes(codigoFiltro) : true;
+            const matchCompania = companiaFiltro ? vuelo.compania.toLowerCase().includes(companiaFiltro) : true;
+            return matchCodigo && matchCompania;
+        });
+
         renderizarListaDeVuelos(vuelosFiltrados);
     };
 
-    const manejarCargaDesdeLista = (codigoDelVuelo) => {
+    const manejarCargaVueloEnFormulario = (codigoDelVuelo) => {
         const vuelo = miAeropuerto.buscarVueloPorCodigo(codigoDelVuelo);
         if(vuelo) {
             codigo.value = vuelo.codigo;
@@ -286,93 +241,122 @@ document.addEventListener('DOMContentLoaded', () => {
             fecha_llegada.value = vuelo.fechaLlegada;
             hora_llegada.value = vuelo.horaLlegada;
             precio.value = vuelo.precioBase;
-
+            
+            btnGuardar.textContent = '💾 Actualizar Vuelo';
+            vueloActivoEnFormulario = vuelo.codigo;
             actualizarDuracionEnTiempoReal();
-            window.scrollTo(0, 0);
+            renderizarListaDeVuelos();
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
     };
     
-    // <<< ESTA FUNCIÓN GESTIONA EL CLIC EN EL BOTÓN "COMPRAR" DE LA LISTA >>>
     const manejarClickListaVuelos = (evento) => {
-        const botonPulsado = evento.target;
-        const codigoVuelo = botonPulsado.dataset.codigo;
-        if(!codigoVuelo) return;
+        const botonPulsado = evento.target.closest('button');
+        if(!botonPulsado) return;
 
-        if(botonPulsado.classList.contains('boton-cargar-lista')) {
-            manejarCargaDesdeLista(codigoVuelo);
-        }
+        const codigoVuelo = botonPulsado.closest('.vuelo-item').dataset.codigo;
+        const accion = botonPulsado.dataset.accion;
+
+        if (accion === 'modificar') manejarCargaVueloEnFormulario(codigoVuelo);
         
-        // <<< AQUÍ COMIENZA LA LÓGICA DE COMPRA >>>
-        if(botonPulsado.classList.contains('boton-comprar')) {
+        if (accion === 'comprar') {
             vueloParaComprar = miAeropuerto.buscarVueloPorCodigo(codigoVuelo);
             if(vueloParaComprar) {
-                document.getElementById('infoVueloCompra').innerText = `Comprando vuelo ${vueloParaComprar.codigo} (${vueloParaComprar.compania})`;
-                formularioDeCompra.elements.claseVuelo.dispatchEvent(new Event('change'));
+                document.getElementById('infoVueloCompra').innerHTML = `💳 Comprando billete para el vuelo <strong>${vueloParaComprar.codigo}</strong> (${vueloParaComprar.compania})`;
                 panelDeCompra.classList.remove('panel-oculto');
+                formularioDeCompra.reset();
                 limpiarTodosLosErrores(formularioDeCompra);
+                claseVuelo.dispatchEvent(new Event('change')); 
+                comentario.dispatchEvent(new Event('input'));
             }
         }
     };
     
-    // <<< ESTA FUNCIÓN CONFIRMA LA COMPRA Y ELIMINA EL VUELO >>>
     const manejarConfirmacionCompra = (evento) => {
         evento.preventDefault();
         limpiarTodosLosErrores(formularioDeCompra);
-        let formularioEsValido = true;
         
-        const { dni, nombre, email, claseVuelo } = formularioDeCompra.elements;
+        let esFormularioValido = true;
         const metodoPago = document.querySelector('input[name="metodoPago"]:checked');
         
-        if (!dni.value) { mostrarError(dni, 'El DNI es obligatorio.'); formularioEsValido = false; }
-        else if (!validarDNI(dni.value)) { mostrarError(dni, 'Formato de DNI incorrecto.'); formularioEsValido = false; }
+        if (!dni.value.trim()) {
+            mostrarError(dni, 'Este campo es obligatorio.');
+            esFormularioValido = false;
+        } else if (!validarDNI(dni.value.trim())) {
+            mostrarError(dni, 'Formato de DNI incorrecto.');
+            esFormularioValido = false;
+        }
         
-        if (!nombre.value.trim()) { mostrarError(nombre, 'El nombre es obligatorio.'); formularioEsValido = false; }
+        if (!nombre.value.trim()) {
+            mostrarError(nombre, 'Este campo es obligatorio.');
+            esFormularioValido = false;
+        }
+
+        if (!email.value.trim()) {
+            mostrarError(email, 'Este campo es obligatorio.');
+            esFormularioValido = false;
+        } else if (!validarEmail(email.value.trim())) {
+            mostrarError(email, 'Formato de correo electrónico incorrecto.');
+            esFormularioValido = false;
+        }
+
+        if (!metodoPago) {
+            mostrarError(document.querySelector('.opciones-pago'), 'Debe seleccionar un método de pago.');
+            esFormularioValido = false;
+        }
         
-        if (!email.value) { mostrarError(email, 'El correo es obligatorio.'); formularioEsValido = false; }
-        else if (!validarEmail(email.value)) { mostrarError(email, 'Formato de correo incorrecto.'); formularioEsValido = false; }
-        
-        if (!metodoPago) { mostrarError(document.querySelector('.opciones-pago'), 'Debe seleccionar un método de pago.'); formularioEsValido = false; }
-        
-        if (!formularioEsValido) return;
+        if (!esFormularioValido) return;
 
         const precioFinal = (vueloParaComprar.precioBase * claseVuelo.value).toFixed(2);
-        const mensajeDeConfirmacion = `¿Confirma la reserva?\n\n- Vuelo: ${vueloParaComprar.codigo}\n- Precio: ${precioFinal}€\n- Pasajero: ${nombre.value.trim()}`;
+        const mensajeDeConfirmacion = `¿Confirma la reserva?\n\n✈️ Vuelo: ${vueloParaComprar.codigo}\n👤 Pasajero: ${nombre.value.trim()}\n💶 Precio Final: ${precioFinal}€`;
         
         if (confirm(mensajeDeConfirmacion)) {
-            miAeropuerto.eliminarVuelo(vueloParaComprar.codigo);
-            guardarVuelosEnMemoria();
-            actualizarTodaLaPagina();
-            alert('¡Reserva realizada con éxito!');
+            alert('✅ ¡Reserva realizada con éxito! ¡Disfrute de su vuelo! ✈️');
             panelDeCompra.classList.add('panel-oculto');
-            formularioDeCompra.reset();
         } else {
-            alert('Reserva cancelada.');
+            alert('ℹ️ Reserva cancelada por el usuario.');
         }
     };
 
     // ===================================================================
-    // PARTE 6: INICIALIZACIÓN DE LA APLICACIÓN
+    // INICIALIZACIÓN DE EVENTOS Y CARGA INICIAL
     // ===================================================================
+    const inicializarInterfaz = () => {
+        // Añadir emojis a los títulos estáticos del HTML
+        document.querySelector('.columna-izquierda h2').innerHTML = '📝 Administrar Vuelos';
+        document.querySelector('.columna-derecha h2').innerHTML = '📋 Vuelos Programados';
+        document.getElementById('tituloCompra').innerHTML = '💳 Comprar Billete';
 
-    formularioDeVuelos.addEventListener('submit', manejarGuardado);
-    document.getElementById('btnMostrar').addEventListener('click', manejarMostrarVuelos);
-    [fecha_salida, hora_salida, fecha_llegada, hora_llegada].forEach(input => input.addEventListener('input', actualizarDuracionEnTiempoReal));
-    
-    // <<< ESTOS SON LOS EVENTOS QUE HACEN FUNCIONAR LA COMPRA >>>
-    divListaVuelos.addEventListener('click', manejarClickListaVuelos);
-    formularioDeCompra.addEventListener('submit', manejarConfirmacionCompra);
-    document.getElementById('btnCancelarCompra').addEventListener('click', () => { panelDeCompra.classList.add('panel-oculto'); formularioDeCompra.reset(); limpiarTodosLosErrores(formularioDeCompra); });
-    formularioDeCompra.elements.claseVuelo.addEventListener('change', () => { if (vueloParaComprar) { document.getElementById('precioFinal').innerText = `Precio a pagar: ${(vueloParaComprar.precioBase * formularioDeCompra.elements.claseVuelo.value).toFixed(2)}€`; } });
-    
-    formularioDeCompra.elements.comentario.addEventListener('input', (e) => { document.getElementById('contador').innerText = `${e.target.maxLength - e.target.value.length} caracteres restantes`; });
-    
-    document.querySelectorAll('input, select').forEach(input => {
-        input.addEventListener('input', () => limpiarError(input));
-        input.addEventListener('change', () => limpiarError(input));
-    });
-    
-    // --- Carga Inicial ---
-    cargarVuelosDesdeMemoria();
-    actualizarTodaLaPagina();
-    actualizarDuracionEnTiempoReal();
+        formularioDeVuelos.addEventListener('submit', manejarGuardado);
+        document.getElementById('btnMostrar').addEventListener('click', manejarMostrar);
+        [fecha_salida, hora_salida, fecha_llegada, hora_llegada].forEach(input => input.addEventListener('input', actualizarDuracionEnTiempoReal));
+        
+        divListaVuelos.addEventListener('click', manejarClickListaVuelos);
+        formularioDeCompra.addEventListener('submit', manejarConfirmacionCompra);
+        document.getElementById('btnCancelarCompra').addEventListener('click', () => panelDeCompra.classList.add('panel-oculto'));
+        
+        claseVuelo.addEventListener('change', () => { 
+            if (vueloParaComprar) { 
+                document.getElementById('precioFinal').innerText = `Precio a pagar: ${(vueloParaComprar.precioBase * claseVuelo.value).toFixed(2)}€`; 
+            } 
+        });
+        
+        comentario.addEventListener('input', (e) => { 
+            contadorComentario.innerText = `${e.target.maxLength - e.target.value.length} caracteres restantes`; 
+        });
+        
+        [dni, nombre, email].forEach(input => {
+            input.addEventListener('input', () => limpiarError(input));
+        });
+        document.querySelectorAll('input[name="metodoPago"]').forEach(radio => {
+            radio.addEventListener('change', () => limpiarError(document.querySelector('.opciones-pago')));
+        });
+        
+        // --- Carga Inicial ---
+        cargarVuelosDesdeMemoria();
+        renderizarListaDeVuelos();
+        actualizarInfoCabecera();
+    };
+
+    inicializarInterfaz();
 });
